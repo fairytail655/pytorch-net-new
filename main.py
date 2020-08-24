@@ -185,7 +185,7 @@ def main():
     val_data = get_dataset(args.dataset, 'eval', transform['eval'])
     val_loader = torch.utils.data.DataLoader(
         val_data,
-        batch_size=args.batch_size, shuffle=False,
+        batch_size=batch_size, shuffle=False,
         num_workers=args.workers, pin_memory=True)
     my_logging.info('val dataset size: {}'.format(len(val_data)))
 
@@ -206,8 +206,8 @@ def main():
     train_data = get_dataset(args.dataset, 'train', transform['train'])
     train_loader = torch.utils.data.DataLoader(
         train_data,
-        batch_size=args.batch_size, shuffle=True,
-        num_workers=args.workers, pin_memory=True)
+        batch_size=batch_size, shuffle=True,
+        num_workers=workers, pin_memory=True)
     my_logging.info('train dataset size: {}'.format(len(train_data)))
 
     # visualDL scalar init
@@ -242,9 +242,9 @@ def main():
                   "[progress.percentage]{task.percentage:>3.0f}%",
                   TimeRemainingColumn(),
                   auto_refresh=False) as progress:
-        task1 = progress.add_task("[red]epoch:", total=args.epochs)
-        task2 = progress.add_task("[blue]training:", total=math.ceil(len(train_data)/args.batch_size))
-        task3 = progress.add_task("[yellow]validating:", total=math.ceil(len(val_data)/args.batch_size))
+        task1 = progress.add_task("[red]epoch:", total=epochs)
+        task2 = progress.add_task("[blue]training:", total=math.ceil(len(train_data)/batch_size))
+        task3 = progress.add_task("[yellow]validating:", total=math.ceil(len(val_data)/batch_size))
 
         for i in range(args.start_epoch):
             progress.update(task1, advance=1, refresh=True)
