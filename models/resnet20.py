@@ -106,12 +106,12 @@ class ResNet_cifar10(ResNet):
         self.train_config = {
             'cifar10': {
                 'epochs': 200,
-                'batch_size': 128,
+                'batch_size': 256,
                 'opt_config': {
-                        0: {'optimizer': 'SGD', 'lr': 1e-1, 'weight_decay': 1e-4, 'momentum': 0.9},
-                        81: {'lr': 1e-2},
-                        122: {'lr': 1e-3, 'weight_decay': 0},
-                        164: {'lr': 1e-4}
+                        0: {'optimizer': 'SGD', 'lr': 1e-3, 'weight_decay': 1e-4, 'momentum': 0.9},
+                        50: {'lr': 5e-4},
+                        100: {'lr': 1e-4, 'weight_decay': 0},
+                        150: {'lr': 1e-5}
                 },
                 'transform': {
                     'train': 
