@@ -15,7 +15,6 @@ from vl_draw import *
 from data import get_dataset
 from utils import *
 from datetime import datetime
-from draw import *
 from torchsummary import summary
 from rich.progress import Progress, BarColumn, TimeRemainingColumn, TextColumn
 
