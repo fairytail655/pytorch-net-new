@@ -105,7 +105,7 @@ class ResNet_cifar10(ResNet):
         # init_model(self)
         self.train_config = {
             'cifar10': {
-                'epochs': 2,
+                'epochs': 200,
                 'batch_size': 128,
                 'opt_config': {
                         0: {'optimizer': 'SGD', 'lr': 1e-1, 'weight_decay': 1e-4, 'momentum': 0.9},
