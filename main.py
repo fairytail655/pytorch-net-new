@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='vgg_1w32a',
+parser.add_argument('--save', metavar='SAVE', default='vgg_selfbinaring',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_1w32a',
+parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_selfbinaring',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
@@ -66,6 +66,7 @@ def main():
     global thread_train, thread_val
     global thread_hm
     global device
+    global epochs
 
     best_prec = 0
     args = parser.parse_args()
@@ -177,6 +178,8 @@ def main():
     model.to(device)
 
     # print net struct
+    if args.model == 'vgg_selfbinaring':
+        model.set_value(0, 10, False)
     if args.dataset == 'mnist':
         summary(model, (1, 28, 28))
     elif args.dataset == 'cifar10':
@@ -327,17 +330,15 @@ def forward(data_loader, model, criterion, epoch=0, training=True, optimizer=Non
                 inputs = Variable(inputs)
                 target = Variable(target)
                 # compute output
-                # if args.model == 'SelfBinaring':
-                #     model.is_training = False
-                #     model.epoch = epoch
+                if args.model == 'vgg_selfbinaring':
+                    model.set_value(epoch, epochs, True)
                 output = model(inputs)
         else:
             inputs = Variable(inputs)
             target = Variable(target)
             # compute output
-            # if args.model == 'SelfBinaring':
-            #     model.is_training = True
-            #     model.epoch = epoch
+            if args.model == 'vgg_selfbinaring':
+                model.set_value(epoch, epochs, False)
             output = model(inputs)
 
         loss = criterion(output, target)

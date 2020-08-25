@@ -53,8 +53,8 @@ class VGG(nn.Module):
                     0: {'optimizer': 'Adam', 'lr': 1e-2, 'weight_decay': 1e-4},
                     60: {'lr': 5e-3},
                     100: {'lr': 1e-3},
-                    120: {'lr': 1e-4}
-                    150: {'lr': 1e-5}
+                    120: {'lr': 1e-4},
+                    150: {'lr': 1e-5},
                 },
                 'transform': {
                     'train': 

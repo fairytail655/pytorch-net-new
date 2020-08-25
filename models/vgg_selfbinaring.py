@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 import math
@@ -7,10 +8,10 @@ __all__ = ['vgg_selfbinaring']
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    return nn.Conv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
+    return SelfBinarizeConv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 def linear(in_planes, out_planes):
-    return nn.Linear(in_planes, out_planes, bias=False)
+    return SelfBinarizeLinear(in_planes, out_planes, bias=False)
 
 def nonlinear():
     return nn.ReLU(inplace=True)
@@ -41,31 +42,22 @@ class VGG(nn.Module):
         self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bn6 = nn.BatchNorm2d(512)
 
-        # nn.Linear(512 * 4 * 4, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, num_classes)
-
         self.fc = linear(512*4*4, num_classes)
 
         self._initialize_weights()
+        self.epoch = 0
+        self.epochs = 0
+        self.is_training = True
 
         self.train_config = {
             'cifar10': {
-                'epochs': 50,
-                'batch_size': 256,
+                'epochs': 200,
+                'batch_size': 128,
                 'opt_config': {
-                    0: {'optimizer': 'SGD', 'lr': 1e-2,
-                        'weight_decay': 5e-4, 'momentum': 0.9},
-                    10: {'lr': 5e-3},
-                    15: {'lr': 1e-3, 'weight_decay': 0},
-                    20: {'lr': 5e-4},
-                    25: {'lr': 1e-4}
+                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    50: {'lr': 5e-4},
+                    100: {'lr': 1e-4},
+                    150: {'lr': 1e-5},
                 },
                 'transform': {
                     'train': 
@@ -100,7 +92,24 @@ class VGG(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
+    def set_value(self, epoch, epochs, is_training):
+        self.epochs = epochs
+        self.epoch = epoch
+        self.is_training = is_training
+
     def forward(self, x):
+        v = torch.linspace(0, math.log(1000), self.epochs)[self.epoch].exp()
+        for m in self.modules():
+            if isinstance(m, SelfBinarizeConv2d):
+                m.is_training = self.is_training
+                m.v = v
+            elif isinstance(m, SelfBinarizeLinear):
+                m.is_training = self.is_training
+                m.v = v
+            elif isinstance(m, SelfTanh):
+                m.is_training = self.is_training
+                m.v = v
+
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.nonlinear(x)

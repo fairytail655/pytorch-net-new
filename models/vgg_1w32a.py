@@ -13,7 +13,7 @@ def linear(in_planes, out_planes):
     return BinarizeLinear_1w32a(in_planes, out_planes, bias=False)
 
 def nonlinear():
-    return nn.Hardtanh(inplace=True)
+    return nn.ReLU(inplace=True)
 
 class VGG(nn.Module):
 
@@ -41,15 +41,6 @@ class VGG(nn.Module):
         self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bn6 = nn.BatchNorm2d(512)
 
-        # nn.Linear(512 * 4 * 4, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, num_classes)
         self.fc = linear(512*4*4, num_classes)
 
         self._initialize_weights()

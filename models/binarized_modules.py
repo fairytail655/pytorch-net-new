@@ -72,12 +72,11 @@ class BinarizeConv2d_1w32a(nn.Conv2d):
         return out
 
 
-def SelfBinarize(tensor, epoch, epochs, is_training=True):
+def SelfBinarize(tensor, v, is_training=True):
     if is_training == False:
         return tensor.sign()
     else:
-        v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
-        return nn.functional.tanh(v * tensor)
+        return torch.tanh(v * tensor)
 
 
 class SelfBinarizeLinear(nn.Linear):
@@ -85,11 +84,14 @@ class SelfBinarizeLinear(nn.Linear):
     def __init__(self, *kargs, **kwargs):
         super(SelfBinarizeLinear, self).__init__(*kargs, **kwargs)
         self.is_training = True
-        self.epoch = 0
+        self.v = 1
+
+    def set_value(self, v):
+        self.v = v
 
     def forward(self, input):
-        bw = SelfBinarize(self.weight, self.epoch, self.is_training)
-        out = nn.functional.linear(input, bw)
+        bw = SelfBinarize(self.weight, self.v, self.is_training)
+        out = nn.functional.linear(input, bw, None)
 
         return out
 
@@ -99,10 +101,13 @@ class SelfBinarizeConv2d(nn.Conv2d):
     def __init__(self, *kargs, **kwargs):
         super(SelfBinarizeConv2d, self).__init__(*kargs, **kwargs)
         self.is_training = True
-        self.epoch = 0
+        self.v = 1
+
+    def set_value(self, v):
+        self.v = v
 
     def forward(self, input):
-        bw = SelfBinarize(self.weight, self.epoch, self.is_training)
+        bw = SelfBinarize(self.weight, self.v, self.is_training)
         out = nn.functional.conv2d(input, bw, None, self.stride, self.padding, self.dilation, self.groups)
 
         return out
@@ -113,8 +118,11 @@ class SelfTanh(nn.Module):
     def __init__(self, *kargs, **kwargs):
         super(SelfTanh, self).__init__(*kargs, **kwargs)
         self.is_training = True
-        self.epoch = 0
+        self.v = 1
+
+    def set_value(self, v):
+        self.v = v
 
     def forward(self, input):
 
-        return SelfBinarize(input, self.epoch, self.is_training)
+        return SelfBinarize(input, self.v, self.is_training)
