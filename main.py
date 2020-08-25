@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='vgg',
+parser.add_argument('--save', metavar='SAVE', default='vgg_1w1a',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='vgg',
+parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_1w1a',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +

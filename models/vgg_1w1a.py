@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from .binarized_modules import *
 
-__all__ = ['vgg']
+__all__ = ['vgg_1w1a']
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -56,15 +56,14 @@ class VGG(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                'epochs': 50,
-                'batch_size': 256,
+                'epochs': 200,
+                'batch_size': 128,
                 'opt_config': {
-                    0: {'optimizer': 'SGD', 'lr': 1e-2,
-                        'weight_decay': 5e-4, 'momentum': 0.9},
-                    10: {'lr': 5e-3},
-                    15: {'lr': 1e-3, 'weight_decay': 0},
-                    20: {'lr': 5e-4},
-                    25: {'lr': 1e-4}
+                    0: {'optimizer': 'Adam', 'lr': 1e-2, 'weight_decay': 1e-4},
+                    50: {'lr': 5e-3},
+                    # s5: {'lr': 1e-3, 'weight_decay': 0},
+                    100: {'lr': 1e-3},
+                    150: {'lr': 1e-4}
                 },
                 'transform': {
                     'train': 
@@ -126,7 +125,7 @@ class VGG(nn.Module):
         return x
 
 
-def vgg(**kwargs):
+def vgg_1w1a(**kwargs):
     datasets = kwargs.get('dataset', 'cifar10')
     if datasets == 'mnist':
         num_classes = 10
