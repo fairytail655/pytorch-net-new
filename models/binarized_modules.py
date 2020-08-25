@@ -2,18 +2,11 @@ import torch
 import pdb
 import torch.nn as nn
 import math
-from torch.autograd import Variable
-from torch.autograd import Function
 
-import numpy as np
+def Binarize(tensor):
 
-def Binarize(tensor,quant_mode='det'):
-    if quant_mode=='det':
-        return tensor.sign()
-    else:
-        return tensor.add_(1).div_(2).add_(torch.rand(tensor.size()).add(-0.5)).clamp_(0,1).round().mul_(2).add_(-1)
+    return tensor.sign()
 
-# import torch.nn._functions as tnnf
 
 class BinarizeLinear(nn.Linear):
 
@@ -21,23 +14,15 @@ class BinarizeLinear(nn.Linear):
         super(BinarizeLinear, self).__init__(*kargs, **kwargs)
 
     def forward(self, input):
+        input.data = Binarize(input.data)
 
-        # if input.size(1) != 784:
-        input.data=Binarize(input.data)
-        # if not hasattr(self.weight,'org'):
-        #     self.weight.org=self.weight.data.clone()
         temp = self.weight.data
-        self.weight.data=Binarize(temp)
-
-        out = nn.functional.linear(input, self.weight)
-
+        self.weight.data = Binarize(temp)
+        out = nn.functional.linear(input, self.weight, None)
         self.weight.data = temp
 
-        if not self.bias is None:
-            self.bias.org=self.bias.data.clone()
-            out += self.bias.view(1, -1).expand_as(out)
-
         return out
+
 
 class BinarizeConv2d(nn.Conv2d):
 
@@ -47,25 +32,22 @@ class BinarizeConv2d(nn.Conv2d):
     def forward(self, input):
         if input.size(1) != 3:
             input.data = Binarize(input.data)
-        temp = self.weight.data
-        self.weight.data=Binarize(temp)
 
+        temp = self.weight.data
+        self.weight.data = Binarize(temp)
         out = nn.functional.conv2d(input, self.weight, None, self.stride,
                                    self.padding, self.dilation, self.groups)
-
         self.weight.data = temp
 
-        if not self.bias is None:
-            self.bias.org=self.bias.data.clone()
-            out += self.bias.view(1, -1, 1, 1).expand_as(out)
-
         return out
+
 
 def SelfBinarize(tensor, epoch, is_training):
     if is_training == False:
         return tensor.sign()
     else:
         return torch.tanh((int(epoch/40)*20+1) * tensor)
+
 
 class SelfBinarizeLinear(nn.Linear):
 
@@ -80,6 +62,7 @@ class SelfBinarizeLinear(nn.Linear):
 
         return out
 
+
 class SelfBinarizeConv2d(nn.Conv2d):
 
     def __init__(self, *kargs, **kwargs):
@@ -92,6 +75,7 @@ class SelfBinarizeConv2d(nn.Conv2d):
         out = nn.functional.conv2d(input, bw, None, self.stride, self.padding, self.dilation, self.groups)
 
         return out
+
 
 class SelfTanh(nn.Module):
 
