@@ -207,7 +207,7 @@ def main():
     train_loader = torch.utils.data.DataLoader(
         train_data,
         batch_size=batch_size, shuffle=True,
-        num_workers=workers, pin_memory=True)
+        num_workers=args.workers, pin_memory=True)
     my_logging.info('train dataset size: {}'.format(len(train_data)))
 
     # visualDL scalar init
