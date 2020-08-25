@@ -26,17 +26,17 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='vgg_1w1a',
+parser.add_argument('--save', metavar='SAVE', default='vgg_1w32a',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_1w1a',
+parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_1w32a',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
                     ' (default: lenet)')
-parser.add_argument('-j', '--workers', default=8, type=int, metavar='N',
-                    help='number of data loading workers (default: 8)')
+parser.add_argument('-j', '--workers', default=0, type=int, metavar='N',
+                    help='number of data loading workers (default: 4)')
 parser.add_argument('--epochs', default=250, type=int, metavar='N',
                     help='number of total epochs to run')
 parser.add_argument('--start-epoch', default=0, type=int, metavar='N',

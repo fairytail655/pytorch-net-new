@@ -3,14 +3,14 @@ import torch.nn as nn
 import torchvision.transforms as transforms
 from .binarized_modules import *
 
-__all__ = ['vgg_1w1a']
+__all__ = ['vgg_1w32a']
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    return BinarizeConv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
+    return BinarizeConv2d_1w32a(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 def linear(in_planes, out_planes):
-    return BinarizeLinear(in_planes, out_planes, bias=False)
+    return BinarizeLinear_1w32a(in_planes, out_planes, bias=False)
 
 def nonlinear():
     return nn.Hardtanh(inplace=True)
@@ -41,20 +41,30 @@ class VGG(nn.Module):
         self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bn6 = nn.BatchNorm2d(512)
 
+        # nn.Linear(512 * 4 * 4, 1024, bias=False)
+        # nn.BatchNorm1d(1024)
+        # nn.ReLU(inplace=True)
+        # nn.Dropout(0.5)
+        # nn.Linear(1024, 1024, bias=False)
+        # nn.BatchNorm1d(1024)
+        # nn.ReLU(inplace=True)
+        # nn.Dropout(0.5)
+        # nn.Linear(1024, num_classes)
         self.fc = linear(512*4*4, num_classes)
 
         self._initialize_weights()
 
         self.train_config = {
             'cifar10': {
-                'epochs': 200,
+                'epochs': 45,
                 'batch_size': 128,
                 'opt_config': {
-                    0: {'optimizer': 'Adam', 'lr': 1e-2, 'weight_decay': 1e-4},
-                    60: {'lr': 5e-3},
-                    100: {'lr': 1e-3},
-                    120: {'lr': 1e-4}
-                    150: {'lr': 1e-5}
+                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    5: {'lr': 5e-4},
+                    # 10: {'lr': 1e-4, 'weight_decay': 0},
+                    15: {'lr': 5e-5},
+                    20: {'lr': 1e-5},
+                    30: {'lr': 1e-6},
                 },
                 'transform': {
                     'train': 
@@ -116,7 +126,7 @@ class VGG(nn.Module):
         return x
 
 
-def vgg_1w1a(**kwargs):
+def vgg_1w32a(**kwargs):
     datasets = kwargs.get('dataset', 'cifar10')
     if datasets == 'mnist':
         num_classes = 10
@@ -125,4 +135,5 @@ def vgg_1w1a(**kwargs):
         num_classes = 10
         in_dim = 3
     return VGG(num_classes, in_dim)
+
 

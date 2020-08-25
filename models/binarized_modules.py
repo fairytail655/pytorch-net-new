@@ -41,12 +41,43 @@ class BinarizeConv2d(nn.Conv2d):
 
         return out
 
+class BinarizeLinear_1w32a(nn.Linear):
 
-def SelfBinarize(tensor, epoch, is_training):
+    def __init__(self, *kargs, **kwargs):
+        super(BinarizeLinear_1w32a, self).__init__(*kargs, **kwargs)
+
+    def forward(self, input):
+
+        temp = self.weight.data
+        self.weight.data = Binarize(temp)
+        out = nn.functional.linear(input, self.weight, None)
+        self.weight.data = temp
+
+        return out
+
+
+class BinarizeConv2d_1w32a(nn.Conv2d):
+
+    def __init__(self, *kargs, **kwargs):
+        super(BinarizeConv2d_1w32a, self).__init__(*kargs, **kwargs)
+
+    def forward(self, input):
+
+        temp = self.weight.data
+        self.weight.data = Binarize(temp)
+        out = nn.functional.conv2d(input, self.weight, None, self.stride,
+                                   self.padding, self.dilation, self.groups)
+        self.weight.data = temp
+
+        return out
+
+
+def SelfBinarize(tensor, epoch, epochs, is_training=True):
     if is_training == False:
         return tensor.sign()
     else:
-        return torch.tanh((int(epoch/40)*20+1) * tensor)
+        v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
+        return nn.functional.tanh(v * tensor)
 
 
 class SelfBinarizeLinear(nn.Linear):
