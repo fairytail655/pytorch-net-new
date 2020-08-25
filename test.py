@@ -1,7 +1,7 @@
 import torch
 from models import *
 
-net = resnet20()
+net = vgg()
 
 # for params in net.parameters():
     # data = params.data.numpy()
@@ -10,7 +10,4 @@ net = resnet20()
 
 for name in net.state_dict():
     a = name
-    data = net.state_dict()[a]
     print(a)
-    print(data)
-    break

@@ -7,3 +7,4 @@ from .resnet import *
 from .resnet20 import *
 from .resnet20_binary import *
 from .SelfBinaring import *
+from .vgg import *

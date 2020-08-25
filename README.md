@@ -1,4 +1,4 @@
-# pytroch-net-framework  
+# pytroch-net  
 ### train:  
 &emsp;python main.py --model="model_name" --save="model_name" --dataset="dataset_name" --input_size=image_size  
 ### evaluate:  

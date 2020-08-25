@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='resnet20',
+parser.add_argument('--save', metavar='SAVE', default='vgg',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
+parser.add_argument('--model', '-a', metavar='MODEL', default='vgg',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
@@ -222,6 +222,8 @@ def main():
     # visualDL histogram init
     hm_layer_names = [
                         'conv1.weight',
+                        'conv6.weight',
+                        'fc.weight',
                     ]
     histogram_path = os.path.join("./vl_log/histogram", args.model)
     my_logging.info('save visualDL histogram log in: {}'.format(histogram_path))
