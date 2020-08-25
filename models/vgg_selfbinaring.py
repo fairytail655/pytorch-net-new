@@ -101,14 +101,11 @@ class VGG(nn.Module):
         v = torch.linspace(0, math.log(1000), self.epochs)[self.epoch].exp()
         for m in self.modules():
             if isinstance(m, SelfBinarizeConv2d):
-                m.is_training = self.is_training
-                m.v = v
+                m.set_value(v, self.is_training)
             elif isinstance(m, SelfBinarizeLinear):
-                m.is_training = self.is_training
-                m.v = v
+                m.set_value(v, self.is_training)
             elif isinstance(m, SelfTanh):
-                m.is_training = self.is_training
-                m.v = v
+                m.set_value(v, self.is_training)
 
         x = self.conv1(x)
         x = self.bn1(x)

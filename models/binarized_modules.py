@@ -86,7 +86,8 @@ class SelfBinarizeLinear(nn.Linear):
         self.is_training = True
         self.v = 1
 
-    def set_value(self, v):
+    def set_value(self, v, is_training):
+        self.is_training = is_training
         self.v = v
 
     def forward(self, input):
@@ -103,8 +104,9 @@ class SelfBinarizeConv2d(nn.Conv2d):
         self.is_training = True
         self.v = 1
 
-    def set_value(self, v):
+    def set_value(self, v, is_training):
         self.v = v
+        self.is_training = is_training
 
     def forward(self, input):
         bw = SelfBinarize(self.weight, self.v, self.is_training)
@@ -120,8 +122,9 @@ class SelfTanh(nn.Module):
         self.is_training = True
         self.v = 1
 
-    def set_value(self, v):
+    def set_value(self, v, is_training):
         self.v = v
+        self.is_training = is_training
 
     def forward(self, input):
 

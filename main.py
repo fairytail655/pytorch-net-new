@@ -338,7 +338,7 @@ def forward(data_loader, model, criterion, epoch=0, training=True, optimizer=Non
             target = Variable(target)
             # compute output
             if args.model == 'vgg_selfbinaring':
-                model.set_value(epoch, epochs, False)
+                model.set_value(epoch, epochs, True)
             output = model(inputs)
 
         loss = criterion(output, target)
