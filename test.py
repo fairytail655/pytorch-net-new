@@ -17,9 +17,11 @@ from matplotlib import pyplot as plt
 # print(net.weight.grad)
 
 a = torch.ones(2, 2, 2, 2)
+c = torch.ones(2, 2)
 
 for i in range(a.size(0)):
     for j in range(a.size(1)):
         b = a[i][j]
+        z = b - c[i][j]
 
-        print(b)
+        print(z)

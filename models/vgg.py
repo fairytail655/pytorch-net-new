@@ -40,31 +40,21 @@ class VGG(nn.Module):
         self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
         self.bn6 = nn.BatchNorm2d(512)
 
-        # nn.Linear(512 * 4 * 4, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, 1024, bias=False)
-        # nn.BatchNorm1d(1024)
-        # nn.ReLU(inplace=True)
-        # nn.Dropout(0.5)
-        # nn.Linear(1024, num_classes)
-
         self.fc = linear(512*4*4, num_classes)
 
         self._initialize_weights()
 
         self.train_config = {
             'cifar10': {
-                'epochs': 50,
-                'batch_size': 256,
+                'epochs': 100,
+                'batch_size': 128,
                 'opt_config': {
-                    0: {'optimizer': 'SGD', 'lr': 1e-2,
-                        'weight_decay': 5e-4, 'momentum': 0.9},
-                    10: {'lr': 5e-3},
-                    15: {'lr': 1e-3, 'weight_decay': 0},
+                    # 0: {'optimizer': 'SGD', 'lr': 1e-3, 'weight_decay': 5e-4, 'momentum': 0.9},
+                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 5e-4},
                     20: {'lr': 5e-4},
-                    25: {'lr': 1e-4}
+                    45: {'lr': 1e-4},
+                    60: {'lr': 5e-5},
+                    80: {'lr': 1e-5}
                 },
                 'transform': {
                     'train': 
