@@ -2,16 +2,16 @@ import torch
 import torch.nn as nn
 import torchvision.transforms as transforms
 import math
-from .binarized_modules import  SelfBinarizeConv2d, SelfBinarizeLinear, SelfTanh
+from .binarized_modules import  MyBinarizeLinear, MyBinarizeConv2d, MyBinarizeTanh
 
-__all__ = ['vgg_selfbinaring']
+__all__ = ['vgg_my']
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
-    return SelfBinarizeConv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
+    return MyBinarizeConv2d(in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False)
 
 def linear(in_planes, out_planes):
-    return SelfBinarizeLinear(in_planes, out_planes, bias=False)
+    return MyBinarizeLinear(in_planes, out_planes, bias=False)
 
 def nonlinear():
     return nn.ReLU(inplace=True)
@@ -48,13 +48,19 @@ class VGG(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                'epochs': 200,
+                # 'epochs': 200,
+                'epochs': 100,
                 'batch_size': 128,
                 'opt_config': {
+                    # 0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    # 50: {'lr': 5e-4},
+                    # 100: {'lr': 1e-4},
+                    # 150: {'lr': 1e-5},
                     0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
-                    50: {'lr': 5e-4},
-                    100: {'lr': 1e-4},
-                    150: {'lr': 1e-5},
+                    20: {'lr': 5e-4},
+                    40: {'lr': 1e-4},
+                    60: {'lr': 1e-5},
+                    80: {'lr': 1e-6},
                 },
                 'transform': {
                     'train': 
@@ -75,7 +81,7 @@ class VGG(nn.Module):
 
     def _initialize_weights(self):
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+            if isinstance(m, MyBinarizeConv2d):
                 n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                 m.weight.data.normal_(0, math.sqrt(2. / n))
                 if m.bias is not None:
@@ -83,7 +89,7 @@ class VGG(nn.Module):
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
-            elif isinstance(m, nn.Linear):
+            elif isinstance(m, MyBinarizeLinear):
                 n = m.weight.size(1)
                 m.weight.data.normal_(0, 0.01)
                 if m.bias is not None:
@@ -92,11 +98,11 @@ class VGG(nn.Module):
     def set_value(self, epoch, epochs, is_training):
         v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
         for m in self.modules():
-            if isinstance(m, SelfBinarizeConv2d):
+            if isinstance(m, MyBinarizeLinear):
                 m.set_value(v, is_training)
-            elif isinstance(m, SelfBinarizeLinear):
+            elif isinstance(m, MyBinarizeConv2d):
                 m.set_value(v, is_training)
-            elif isinstance(m, SelfTanh):
+            elif isinstance(m, MyBinarizeTanh):
                 m.set_value(v, is_training)
 
     def forward(self, x):
@@ -126,7 +132,7 @@ class VGG(nn.Module):
         return x
 
 
-def vgg_selfbinaring(**kwargs):
+def vgg_my(**kwargs):
     datasets = kwargs.get('dataset', 'cifar10')
     if datasets == 'mnist':
         num_classes = 10

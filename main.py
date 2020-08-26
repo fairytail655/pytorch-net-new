@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='vgg_selfbinaring',
+parser.add_argument('--save', metavar='SAVE', default='vgg_my',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_selfbinaring',
+parser.add_argument('--model', '-a', metavar='MODEL', default='vgg_my',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
@@ -69,6 +69,11 @@ def main():
     global epochs
 
     best_prec = 0
+    set_value_list = [
+        'vgg_selfbinaring',
+        'vgg_my'
+    ]
+
     args = parser.parse_args()
 
     if args.evaluate:
@@ -178,7 +183,7 @@ def main():
     model.to(device)
 
     # print net struct
-    if args.model == 'vgg_selfbinaring':
+    if args.model in set_value_list:
         model.set_value(0, 10, False)
     if args.dataset == 'mnist':
         summary(model, (1, 28, 28))
@@ -199,6 +204,8 @@ def main():
                     TimeRemainingColumn(),
                     auto_refresh=False) as progress:
             task3 = progress.add_task("[yellow]validating:", total=math.ceil(len(val_data)/args.batch_size))
+            if args.model in set_value_list:
+                model.set_value(0, 10, False)
             val_loss, val_prec = validate(val_loader, model, criterion, 0)
             my_logging.info('Evaluate {0}\t'
                         'Validation Loss {val_loss:.4f} \t'
@@ -258,6 +265,10 @@ def main():
         for epoch in range(args.start_epoch, epochs):
             start = time.time()
             optimizer = adjust_optimizer(optimizer, epoch, opt_config)
+
+            # update param 'v' in SelfBinarize
+            if args.model in set_value_list:
+                model.set_value(epoch, epochs, True)
 
             # train for one epoch
             train_loss, train_prec = train(
@@ -330,15 +341,11 @@ def forward(data_loader, model, criterion, epoch=0, training=True, optimizer=Non
                 inputs = Variable(inputs)
                 target = Variable(target)
                 # compute output
-                if args.model == 'vgg_selfbinaring':
-                    model.set_value(epoch, epochs, True)
                 output = model(inputs)
         else:
             inputs = Variable(inputs)
             target = Variable(target)
             # compute output
-            if args.model == 'vgg_selfbinaring':
-                model.set_value(epoch, epochs, True)
             output = model(inputs)
 
         loss = criterion(output, target)
@@ -398,11 +405,14 @@ if __name__ == '__main__':
         main()
     except KeyboardInterrupt:
         print("Main KeyboardInterrupt....")
-    thread_train.stop()
-    thread_train.join()
-    thread_val.stop()
-    thread_val.join()
-    for thread in thread_hm.keys():
-        thread_hm[thread].stop()
-        thread_hm[thread].join()
+    try:
+        thread_train.stop()
+        thread_train.join()
+        thread_val.stop()
+        thread_val.join()
+        for thread in thread_hm.keys():
+            thread_hm[thread].stop()
+            thread_hm[thread].join()
+    except:
+        pass
     sys.exit(1)
