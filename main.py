@@ -72,7 +72,8 @@ def main():
     set_value_list = [
         'vgg_selfbinaring',
         'vgg_my',
-        'resnet20_my'
+        'resnet20_my',
+        'resnet20_my_1w1a',
     ]
 
     args = parser.parse_args()
