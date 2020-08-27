@@ -23,7 +23,7 @@ def linear(in_planes, out_planes):
 
 
 def act():
-    return nn.Relu()
+    return nn.ReLU()
 
 
 def act_1w1a():
@@ -118,7 +118,7 @@ class ResNet_My(nn.Module):
     def _initialize_weights(self):
         for m in self.modules():
             if isinstance(m, MyBinarizeConv2d) or isinstance(m, MyBinarizeLinear):
-                nn.init.kaiming_normal(m.weight)
+                nn.init.kaiming_normal_(m.weight)
             elif isinstance(m, nn.BatchNorm2d):
                 m.weight.data.fill_(1)
                 m.bias.data.zero_()
