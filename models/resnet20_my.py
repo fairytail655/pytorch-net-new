@@ -90,7 +90,7 @@ class ResNet_My(nn.Module):
                 #         150: {'lr': 1e-5},
                 # },
                 'epochs': 120,
-                'batch_size': 100,
+                'batch_size': 128,
                 'opt_config': {
                         0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
                         30: {'lr': 5e-4},
