@@ -23,7 +23,7 @@ def linear(in_planes, out_planes):
 
 
 def act():
-    return nn.Hardtanh()
+    return nn.Relu()
 
 
 def act_1w1a():
