@@ -26,11 +26,11 @@ parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
-parser.add_argument('--save', metavar='SAVE', default='resnet20',
+parser.add_argument('--save', metavar='SAVE', default='resnet20_my',
                     help='saved folder')
 parser.add_argument('--dataset', metavar='DATASET', default='cifar10',
                     help='dataset name or folder')
-parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20',
+parser.add_argument('--model', '-a', metavar='MODEL', default='resnet20_my',
                     choices=model_names,
                     help='model architecture: ' +
                     ' | '.join(model_names) +
@@ -71,7 +71,8 @@ def main():
     best_prec = 0
     set_value_list = [
         'vgg_selfbinaring',
-        'vgg_my'
+        'vgg_my',
+        'resnet20_my'
     ]
 
     args = parser.parse_args()
