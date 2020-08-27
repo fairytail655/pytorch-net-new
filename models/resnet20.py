@@ -75,13 +75,14 @@ class ResNet(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                'epochs': 200,
-                'batch_size': 256,
+                'epochs': 120,
+                'batch_size': 128,
                 'opt_config': {
-                        0: {'optimizer': 'SGD', 'lr': 1e-3, 'weight_decay': 1e-4, 'momentum': 0.9},
-                        50: {'lr': 5e-4},
-                        100: {'lr': 1e-4},
-                        150: {'lr': 1e-5}
+                        0: {'optimizer': 'Adam', 'lr': 1e-2, 'weight_decay': 1e-4},
+                        30: {'lr': 5e-3},
+                        50: {'lr': 1e-3, 'weight_decay': 0},
+                        80: {'lr': 1e-4},
+                        100: {'lr': 1e-5},
                 },
                 'transform': {
                     'train': 
