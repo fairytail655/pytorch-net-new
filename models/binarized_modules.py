@@ -131,13 +131,8 @@ class SelfTanh(nn.Module):
         return SelfBinarize(input, self.v, self.is_training)
 
 
-def MyBinarize(tensor, v, k, is_training):
-    if not is_training:
-        temp = tensor - k
-        return torch.sign(temp)
-    else:
-        temp = tensor - k
-        return torch.tanh(v * temp)
+def MyBinarize():
+    return nn.Hardtanh(inplace=True)
 
 
 class MyBinarizeLinear(nn.Linear):
@@ -154,7 +149,6 @@ class MyBinarizeLinear(nn.Linear):
         self.is_training = is_training
 
     def forward(self, input):
-        # bw = MyBinarize(self.weight, self.v, self.k, self.is_training)
         if self.is_training:
             bw = self.binarize((self.weight-self.k)*self.v)
         else:
@@ -178,7 +172,6 @@ class MyBinarizeConv2d(nn.Conv2d):
         self.is_training = is_training
 
     def forward(self, input):
-        # bw = MyBinarize(self.weight, self.v, self.k, self.is_training)
         if self.is_training:
             bw = self.binarize((self.weight-self.k)*self.v)
         else:
@@ -195,11 +188,15 @@ class MyBinarizeTanh(nn.Module):
         self.is_training = True
         self.v = 1
         self.k = nn.Parameter(torch.zeros(1), requires_grad=True)
+        self.binarize = nn.Hardtanh()
 
     def set_value(self, v, is_training):
         self.v = v
         self.is_training = is_training
 
     def forward(self, input):
-
-        return MyBinarize(input, self.v, self.k, self.is_training)
+        if self.is_training:
+            ba = self.binarize((input-self.k)*self.v)
+        else:
+            ba = torch.sign(input-self.k)
+        return ba

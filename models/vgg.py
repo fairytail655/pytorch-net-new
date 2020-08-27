@@ -12,7 +12,7 @@ def linear(in_planes, out_planes):
     return nn.Linear(in_planes, out_planes, bias=False)
 
 def nonlinear():
-    return nn.ReLU(inplace=True)
+    return nn.ReLU()
 
 class VGG(nn.Module):
 

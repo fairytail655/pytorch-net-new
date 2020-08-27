@@ -4,7 +4,7 @@ import torchvision.transforms as transforms
 import math
 from .binarized_modules import  MyBinarizeLinear, MyBinarizeConv2d, MyBinarizeTanh
 
-__all__ = ['vgg_my']
+__all__ = ['vgg_my', 'vgg_my_1w1a']
 
 def conv3x3(in_planes, out_planes, stride=1):
     "3x3 convolution with padding"
@@ -14,12 +14,15 @@ def linear(in_planes, out_planes):
     return MyBinarizeLinear(in_planes, out_planes, bias=False)
 
 def nonlinear():
-    return nn.ReLU(inplace=True)
+    return nn.ReLU()
 
-class VGG(nn.Module):
+def act():
+    return MyBinarizeTanh()
+
+class VGG_MY(nn.Module):
 
     def __init__(self, num_classes=10, in_dim=3):
-        super(VGG, self).__init__()
+        super(VGG_MY, self).__init__()
         self.conv1 = conv3x3(in_dim, 128)
         self.bn1 = nn.BatchNorm2d(128)
         self.nonlinear = nonlinear()
@@ -132,6 +135,127 @@ class VGG(nn.Module):
         return x
 
 
+class VGG_MY_1W1A(nn.Module):
+
+    def __init__(self, num_classes=10, in_dim=3):
+        super(VGG_MY_1W1A, self).__init__()
+        self.conv1 = conv3x3(in_dim, 128)
+        self.bn1 = nn.BatchNorm2d(128)
+        self.act1 = act()
+
+        self.conv2 = conv3x3(128, 128)
+        self.maxpool2 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.bn2 = nn.BatchNorm2d(128)
+        self.act2 = act()
+
+        self.conv3 = conv3x3(128, 256)
+        self.bn3 = nn.BatchNorm2d(256)
+        self.act3 = act()
+
+        self.conv4 = conv3x3(256, 256)
+        self.maxpool4 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.bn4 = nn.BatchNorm2d(256)
+        self.act4 = act()
+
+        self.conv5 = conv3x3(256, 512)
+        self.bn5 = nn.BatchNorm2d(512)
+        self.act5 = act()
+
+        self.conv6 = conv3x3(512, 512)
+        self.maxpool6 = nn.MaxPool2d(kernel_size=2, stride=2)
+        self.bn6 = nn.BatchNorm2d(512)
+        self.act6 = act()
+
+        self.fc = linear(512*4*4, num_classes)
+
+        self._initialize_weights()
+
+        self.train_config = {
+            'cifar10': {
+                # 'epochs': 200,
+                'epochs': 100,
+                'batch_size': 128,
+                'opt_config': {
+                    # 0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    # 50: {'lr': 5e-4},
+                    # 100: {'lr': 1e-4},
+                    # 150: {'lr': 1e-5},
+                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    20: {'lr': 5e-4},
+                    40: {'lr': 1e-4},
+                    60: {'lr': 1e-5},
+                    80: {'lr': 1e-6},
+                },
+                'transform': {
+                    'train': 
+                        transforms.Compose([
+                            transforms.RandomCrop(32, padding=4),  #先四周填充0，在吧图像随机裁剪成32*32
+                            transforms.RandomHorizontalFlip(),  #图像一半的概率翻转，一半的概率不翻转
+                            transforms.ToTensor(),
+                            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)), #R,G,B每层的归一化用到的均值和方差
+                    ]),
+                    'eval': 
+                        transforms.Compose([
+                            transforms.ToTensor(),
+                            transforms.Normalize((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
+                    ])
+                },    
+            },
+        }
+
+    def _initialize_weights(self):
+        for m in self.modules():
+            if isinstance(m, MyBinarizeConv2d):
+                n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
+                m.weight.data.normal_(0, math.sqrt(2. / n))
+                if m.bias is not None:
+                    m.bias.data.zero_()
+            elif isinstance(m, nn.BatchNorm2d):
+                m.weight.data.fill_(1)
+                m.bias.data.zero_()
+            elif isinstance(m, MyBinarizeLinear):
+                n = m.weight.size(1)
+                m.weight.data.normal_(0, 0.01)
+                if m.bias is not None:
+                    m.bias.data.zero_()
+
+    def set_value(self, epoch, epochs, is_training):
+        v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
+        for m in self.modules():
+            if isinstance(m, MyBinarizeLinear):
+                m.set_value(v, is_training)
+            elif isinstance(m, MyBinarizeConv2d):
+                m.set_value(v, is_training)
+            elif isinstance(m, MyBinarizeTanh):
+                m.set_value(v, is_training)
+
+    def forward(self, x):
+        x = self.conv1(x)
+        x = self.bn1(x)
+        x = self.act1(x)
+        x = self.conv2(x)
+        x = self.maxpool2(x)
+        x = self.bn2(x)
+        x = self.act2(x)
+        x = self.conv3(x)
+        x = self.bn3(x)
+        x = self.act3(x)
+        x = self.conv4(x)
+        x = self.maxpool4(x)
+        x = self.bn4(x)
+        x = self.act4(x)
+        x = self.conv5(x)
+        x = self.bn5(x)
+        x = self.act5(x)
+        x = self.conv6(x)
+        x = self.maxpool6(x)
+        x = self.bn6(x)
+        x = self.act6(x)
+        x = x.view(x.size(0), -1)
+        x = self.fc(x)
+        return x
+
+
 def vgg_my(**kwargs):
     datasets = kwargs.get('dataset', 'cifar10')
     if datasets == 'mnist':
@@ -140,4 +264,15 @@ def vgg_my(**kwargs):
     elif datasets == 'cifar10':
         num_classes = 10
         in_dim = 3
-    return VGG(num_classes, in_dim)
+    return VGG_MY(num_classes, in_dim)
+
+
+def vgg_my_1w1a(**kwargs):
+    datasets = kwargs.get('dataset', 'cifar10')
+    if datasets == 'mnist':
+        num_classes = 10
+        in_dim = 1
+    elif datasets == 'cifar10':
+        num_classes = 10
+        in_dim = 3
+    return VGG_MY_1W1A(num_classes, in_dim)
