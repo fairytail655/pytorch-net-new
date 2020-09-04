@@ -151,8 +151,7 @@ class ResNet_My(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def set_value(self, epoch, epochs, is_training):
-        v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
+    def set_value(self, v, is_training):
         for m in self.modules():
             if isinstance(m, MyBinarizeLinear) or isinstance(m, MyBinarizeLinear) or isinstance(m, MyBinarizeTanh):
                 m.set_value(v, is_training)
@@ -209,7 +208,7 @@ class ResNet_My_1W1A(nn.Module):
 
     def __init__(self, num_classes=10, in_dim=3):
         super(ResNet_My_1W1A, self).__init__()
-        self.inflate = 1
+        self.inflate = 4
         self.inplanes = 16*self.inflate
         self.conv1 = conv3x3(in_dim, self.inplanes)
         self.bn1 = nn.BatchNorm2d(self.inplanes)
@@ -224,14 +223,14 @@ class ResNet_My_1W1A(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                'epochs': 100,
+                'epochs': 120,
                 'batch_size': 128,
                 'opt_config': {
-                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
-                    20: {'lr': 5e-4},
-                    40: {'lr': 1e-4},
-                    60: {'lr': 1e-5},
-                    80: {'lr': 1e-6},
+                        0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                        30: {'lr': 5e-4},
+                        50: {'lr': 1e-4},
+                        80: {'lr': 1e-5},
+                        100: {'lr': 1e-6},
                 },
                 # 'epochs': 120,
                 # 'batch_size': 128,

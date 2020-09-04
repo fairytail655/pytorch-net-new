@@ -131,9 +131,8 @@ class SelfTanh(nn.Module):
         return SelfBinarize(input, self.v, self.is_training)
 
 
-def MyBinarize():
-    return nn.Hardtanh(inplace=True)
-
+def MyBinarize(input): 
+    return nn.functional.hardtanh(input)
 
 class MyBinarizeLinear(nn.Linear):
 
@@ -142,7 +141,6 @@ class MyBinarizeLinear(nn.Linear):
         self.is_training = True
         self.v = 1
         self.k = nn.Parameter(torch.zeros(1), requires_grad=True)
-        self.binarize = nn.Hardtanh()
 
     def set_value(self, v, is_training):
         self.v = v
@@ -150,7 +148,7 @@ class MyBinarizeLinear(nn.Linear):
 
     def forward(self, input):
         if self.is_training:
-            bw = self.binarize((self.weight-self.k)*self.v)
+            bw = MyBinarize((self.weight-self.k)*self.v)
         else:
             bw = torch.sign(self.weight-self.k)
         out = nn.functional.linear(input, bw, None)
@@ -165,7 +163,6 @@ class MyBinarizeConv2d(nn.Conv2d):
         self.is_training = True
         self.v = 1
         self.k = nn.Parameter(torch.zeros(1), requires_grad=True)
-        self.binarize = nn.Hardtanh()
 
     def set_value(self, v, is_training):
         self.v = v
@@ -173,7 +170,7 @@ class MyBinarizeConv2d(nn.Conv2d):
 
     def forward(self, input):
         if self.is_training:
-            bw = self.binarize((self.weight-self.k)*self.v)
+            bw = MyBinarize((self.weight-self.k)*self.v)
         else:
             bw = torch.sign(self.weight-self.k)
         out = nn.functional.conv2d(input, bw, None, self.stride, self.padding, self.dilation, self.groups)
@@ -188,7 +185,6 @@ class MyBinarizeTanh(nn.Module):
         self.is_training = True
         self.v = 1
         self.k = nn.Parameter(torch.zeros(1), requires_grad=True)
-        self.binarize = nn.Hardtanh()
 
     def set_value(self, v, is_training):
         self.v = v
@@ -196,7 +192,7 @@ class MyBinarizeTanh(nn.Module):
 
     def forward(self, input):
         if self.is_training:
-            ba = self.binarize((input-self.k)*self.v)
+            ba = MyBinarize((input-self.k)*self.v)
         else:
             ba = torch.sign(input-self.k)
         return ba

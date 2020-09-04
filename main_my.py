@@ -22,7 +22,7 @@ model_names = sorted(name for name in models.__dict__
                      if name.islower() and not name.startswith("__")
                      and callable(models.__dict__[name]))
 
-parser = argparse.ArgumentParser(description='PyTorch ConvNet Training')
+parser = argparse.ArgumentParser(description='PyTorch MyConvNet Training')
 
 parser.add_argument('--results_dir', metavar='RESULTS_DIR', default='./results',
                     help='results dir')
@@ -45,7 +45,7 @@ parser.add_argument('-b', '--batch-size', default=128, type=int,
                     metavar='N', help='mini-batch size (default: 256)')
 parser.add_argument('--optimizer', default='SGD', type=str, metavar='OPT',
                     help='optimizer function used')
-parser.add_argument('--lr', '--learning_rate', default=0.1, type=float,
+parser.add_argument('--lr', '--learning_rate', default=0.001, type=float,
                     metavar='LR', help='initial learning rate')
 parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                     help='momentum')
@@ -69,7 +69,6 @@ def main():
     global epochs
 
     best_prec = 0
-
     args = parser.parse_args()
 
     if args.evaluate:
@@ -100,7 +99,7 @@ def main():
     model = model(**model_config)
     my_logging.info("created model \"{}\" with configuration: {}"
                     .format(args.model, model_config))
-    optimizer = torch.optim.SGD(model.parameters(), lr=args.lr)
+    optimizer = torch.optim.Adam([{'params': model.parameters(), 'initial_lr': 1}], lr=args.lr)
 
     # optionally resume from a checkpoint
     if args.evaluate:
@@ -179,6 +178,7 @@ def main():
     model.to(device)
 
     # print net struct
+    model.set_value(1, False)
     if args.dataset == 'mnist':
         summary(model, (1, 28, 28))
     elif args.dataset == 'cifar10':
@@ -198,6 +198,7 @@ def main():
                     TimeRemainingColumn(),
                     auto_refresh=False) as progress:
             task3 = progress.add_task("[yellow]validating:", total=math.ceil(len(val_data)/args.batch_size))
+            model.set_value(1, False)
             val_loss, val_prec = validate(val_loader, model, criterion, 0)
             my_logging.info('Evaluate {0}\t'
                         'Validation Loss {val_loss:.4f} \t'
@@ -223,10 +224,10 @@ def main():
 
     # visualDL histogram init
     hm_layer_names = [
-                        'conv1.weight',
+                        # 'conv1.weight',
                         # 'conv6.weight',
-                        'layer3.2.conv2.weight',
-                        'fc.weight',
+                        # # 'layer3.2.conv2.weight',
+                        # 'fc.weight',
                     ]
     histogram_path = os.path.join("./vl_log/histogram", args.model)
     my_logging.info('save visualDL histogram log in: {}'.format(histogram_path))
@@ -240,6 +241,10 @@ def main():
         if name in hm_layer_names:
             value = model.state_dict()[name].cpu().numpy().reshape(-1)
             thread_hm[name].set_value(0, value)
+
+    v_list = torch.exp(torch.linspace(0, math.log(1000), epochs))
+    lr_lambda = lambda epoch : args.lr/(v_list[epoch])
+    lr_scheduler = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda, args.start_epoch-1)
 
     # print progressor
     with Progress("[progress.description]{task.description}{task.completed}/{task.total}",
@@ -257,12 +262,16 @@ def main():
         begin = time.time()
         for epoch in range(args.start_epoch, epochs):
             start = time.time()
-            optimizer = adjust_optimizer(optimizer, epoch, opt_config)
+            # optimizer = adjust_optimizer(optimizer, epoch, opt_config)
 
+            # update param 'v' in SelfBinarize
+            model.set_value(v_list[epoch], True)
             # train for one epoch
             train_loss, train_prec = train(
                 train_loader, model, criterion, epoch, optimizer)
 
+            # update param 'v' in SelfBinarize
+            model.set_value(1, False)
             # evaluate on validation set
             val_loss, val_prec = validate(
                 val_loader, model, criterion, epoch)
@@ -293,6 +302,10 @@ def main():
             results.add(epoch=epoch + 1, train_loss=train_loss, val_loss=val_loss,
                         train_prec=train_prec, val_prec=val_prec)
             results.save()
+
+            # update lr_scheduler
+            if epoch != epochs-1:
+                lr_scheduler.step()
 
             # draw visualDL scalar
             thread_train.set_value(epoch, {'loss': train_loss, 'acc': train_prec})

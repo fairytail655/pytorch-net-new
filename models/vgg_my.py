@@ -51,19 +51,23 @@ class VGG_MY(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                # 'epochs': 200,
-                'epochs': 100,
+                'epochs': 120,
                 'batch_size': 128,
                 'opt_config': {
-                    # 0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
-                    # 50: {'lr': 5e-4},
-                    # 100: {'lr': 1e-4},
-                    # 150: {'lr': 1e-5},
                     0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
                     20: {'lr': 5e-4},
-                    40: {'lr': 1e-4},
-                    60: {'lr': 1e-5},
-                    80: {'lr': 1e-6},
+                    50: {'lr': 1e-4},
+                    80: {'lr': 1e-5},
+                    100: {'lr': 5e-6},
+                ## 90.02
+                # 'epochs': 120,
+                # 'batch_size': 128,
+                # 'opt_config': {
+                #     0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                #     20: {'lr': 5e-4},
+                #     50: {'lr': 1e-4},
+                #     80: {'lr': 1e-5},
+                #     100: {'lr': 1e-6},
                 },
                 'transform': {
                     'train': 
@@ -172,15 +176,19 @@ class VGG_MY_1W1A(nn.Module):
 
         self.train_config = {
             'cifar10': {
-                # 'epochs': 200,
-                'epochs': 100,
+                ## 90.69
+                # 'epochs': 100,
+                # 'batch_size': 128,
+                # 'opt_config': {
+                #     0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                #     20: {'lr': 5e-4},
+                #     40: {'lr': 1e-4},
+                #     60: {'lr': 1e-5},
+                #     80: {'lr': 1e-6},
+                'epochs': 120,
                 'batch_size': 128,
                 'opt_config': {
-                    # 0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
-                    # 50: {'lr': 5e-4},
-                    # 100: {'lr': 1e-4},
-                    # 150: {'lr': 1e-5},
-                    0: {'optimizer': 'Adam', 'lr': 1e-3, 'weight_decay': 1e-4},
+                    0: {'optimizer': 'Adam', 'lr': 1e-3},
                     20: {'lr': 5e-4},
                     40: {'lr': 1e-4},
                     60: {'lr': 1e-5},
@@ -219,8 +227,7 @@ class VGG_MY_1W1A(nn.Module):
                 if m.bias is not None:
                     m.bias.data.zero_()
 
-    def set_value(self, epoch, epochs, is_training):
-        v = torch.linspace(0, math.log(1000), epochs)[epoch].exp()
+    def set_value(self, v, is_training):
         for m in self.modules():
             if isinstance(m, MyBinarizeLinear):
                 m.set_value(v, is_training)
